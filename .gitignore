@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+
+# macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# LaTeX auxiliary files (keep PDFs)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+
+# Large raw seismic archives (> 100 MB)
+*.zip
+data/GTUNE data/
+data/North Korean data/
+asm-2 proj outline draft.pdf
+
+# Explicitly keep processed data, models, and results
+!data/classification_results.csv
+!data/earthquake_data.npz
+!data/explosion_data.npz
+!data/features.csv
+!data/seismic_cnn_128x128.pt
+
