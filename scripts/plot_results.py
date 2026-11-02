@@ -56,8 +56,8 @@ importances = [48.06, 13.12, 9.18, 4.45, 4.01, 3.01, 2.72, 1.76, 1.76, 1.50]
 
 
 def generate_benchmark_bars():
-    # 30% larger figure size
-    fig, ax = plt.subplots(figsize=(11.5, 5.8))
+    # 30% larger figure size with optimal aspect ratio
+    fig, ax = plt.subplots(figsize=(11.5, 5.0))
     x = np.arange(len(models)) * 1.20
     width = 0.23  # 20% wider bars
 
@@ -67,7 +67,7 @@ def generate_benchmark_bars():
     ax.bar(x + 1.5 * width, pr_auc,    width, label="PR-AUC",    color="#48a05c", alpha=0.92, edgecolor="#256633", lw=0.7)
 
     ax.set_ylabel("Score (%)", fontweight="bold")
-    ax.set_title("3-Component Seismic Classification (5-Fold Event-Grouped CV)", fontweight="bold", pad=48)
+    ax.set_title("3-Component Seismic Classification (5-Fold Event-Grouped CV)", fontweight="bold", pad=44)
     ax.set_xticks(x)
     ax.set_xticklabels(models, fontweight="bold")
     ax.set_ylim(88, 101.5)
@@ -89,11 +89,11 @@ def generate_benchmark_bars():
 
 
 def generate_feature_importance():
-    # 30% larger figure size
-    fig, ax = plt.subplots(figsize=(11.5, 6.0))
+    # 30% larger figure size with optimal aspect ratio
+    fig, ax = plt.subplots(figsize=(11.5, 5.2))
     y_pos = np.arange(len(features))
 
-    bars = ax.barh(y_pos, importances, align="center", height=0.72, color="#3b6978", alpha=0.90, edgecolor="#1b3742", lw=0.8)
+    bars = ax.barh(y_pos, importances, align="center", height=0.70, color="#3b6978", alpha=0.90, edgecolor="#1b3742", lw=0.8)
     ax.set_yticks(y_pos)
     ax.set_yticklabels(features, fontsize=11.5)
     ax.invert_yaxis()
@@ -115,7 +115,7 @@ def generate_feature_importance():
 
 def generate_composite_results():
     # 30% larger composite figure size
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11.8, 12.2))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11.8, 10.8))
 
     # --- Subplot 1: Model Benchmarks ---
     x = np.arange(len(models)) * 1.20

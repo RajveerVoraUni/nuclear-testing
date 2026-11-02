@@ -172,7 +172,7 @@ All signals are padded at the trailing boundary with silence (zero-padding). Thi
 
 \subsection{Complete Mathematical Formulation of the 18 Features}
 From each synchronized 3-component recording ($Z, N, E$), we extract 18 pure wave physics features:
-\begin{enumerate}
+\begin{enumerate}\setlength{\itemsep}{2pt}\setlength{\parskip}{0pt}
     \item \textbf{Cross-Component $P/S$ Ratio (`ps\_ratio\_cross`):}
     \begin{equation*}
         \text{ps\_ratio\_cross} = \log_{10} \left( \frac{\sqrt{\frac{1}{60} \sum_{k=200}^{259} Z(t_k)^2} + 10^{-10}}{\sqrt{\frac{1}{400} \sum_{k=300}^{699} H(t_k)^2} + 10^{-10}} \right)
@@ -206,6 +206,9 @@ From each synchronized 3-component recording ($Z, N, E$), we extract 18 pure wav
     \item \textbf{Fisher Kurtosis on $H$ (`kurt\_h`):} Kurtosis of $H$ on $t \in [10.0\text{ s}, 35.0\text{ s}]$.
 \end{enumerate}
 
+\noindent \textbf{Physical Motivation and Theoretical Justification:}
+These 18 features were specifically selected based on elastodynamic source theory, Brune--Haskell spectral scaling, and wave attenuation physics rather than empirical heuristic search. First, because underground nuclear explosions are isotropic expansions ($\text{tr}(\mathbf{M}) > 0$, $\text{Dev}(\mathbf{M}) = \mathbf{0}$) radiating primary compressional $P$-waves with negligible source shear, whereas tectonic earthquakes originate from deviatoric fault slip, cross-component amplitude ratios and horizontal energy fractions (Features 1--4) exploit this fundamental shear-wave deficiency \cite{walter1995}. Second, compact explosive blast cavities ($r_0 \sim 100\text{ m}$) produce high corner frequencies ($f_c \propto v_S / r_0 \sim 5\text{--}10\text{ Hz}$) that blue-shift spectral energy into high frequencies compared to multi-kilometer fault ruptures ($f < 2\text{ Hz}$); spectral ratios, centroids, and spreads (Features 7--9, 13--15) capture these diagnostic source scaling contrasts \cite{brune1970, walter1995}. Third, 3D covariance eigendecomposition isolates pure linear $P$-wave particle motion (rectilinearity $L \to 1$) from elliptical or scattered shear/coda trajectories (Features 5--6) \cite{jurkevics1988}. Finally, shallow explosive burial ($h < 1\text{ km}$) within fractured, low-$Q$ surface layers yields sharp, impulsive waveform bursts (high Fisher kurtosis) followed by rapid coda decay, whereas deeper fault slip ($h > 5\text{ km}$) sustains prolonged reverberations in the crustal waveguide (Features 10--12, 16--18) \cite{aki1975}. Formulating all 18 features as dimensionless ratios or normalized central moments guarantees scale invariance, canceling geometric attenuation ($1/r$) and sensor gain.
+
 \subsection{Statistical Learning and Classical Machine Learning Classifiers}
 Using the 18 pure wave physics features extracted in Section~5.1 ($\mathbf{x}_i \in \mathbb{R}^{18}$ for each seismic trace $i$), we evaluate a diverse suite of classical statistical learning and machine learning algorithms spanning linear regularized models, kernel methods, bagging ensembles, and gradient boosting. Each model represents a distinct inductive bias concerning decision boundary geometry, feature interactions, and tolerance to collinearity.
 
@@ -215,7 +218,7 @@ Let $y_i \in \{0, 1\}$ denote the binary event label (0 for natural earthquake, 
     \min_{\mathbf{w} \in \mathbb{R}^p, \, b \in \mathbb{R}} \; -\frac{1}{N}\sum_{i=1}^N \left[ y_i \log \sigma(\mathbf{w}^T \mathbf{x}_i + b) + (1 - y_i) \log(1 - \sigma(\mathbf{w}^T \mathbf{x}_i + b)) \right] + \lambda \|\mathbf{w}\|_1
 \end{equation*}
 where $\sigma(z) = (1 + e^{-z})^{-1}$ is the sigmoid activation function, $\|\mathbf{w}\|_1 = \sum_{j=1}^p |w_j|$, and $\lambda > 0$ is the regularization hyperparameter (parameterized via $C = 1/\lambda$ in the SAGA optimization solver).
-\begin{itemize}
+\begin{itemize}\setlength{\itemsep}{1.5pt}\setlength{\parskip}{0pt}
     \item \textbf{Characteristics \& Mechanism:} Because the $\ell_1$-ball possesses sharp non-differentiable corners aligned with the coordinate axes, optimization drives redundant or uninformative feature weights strictly to zero ($w_j = 0$), performing continuous subset selection.
     \item \textbf{Strengths:} Highly interpretable; coefficients directly reflect proportional changes in log-odds of an explosive source; automatically discards noisy higher-order statistical moments; delivers sub-millisecond inference latency.
     \item \textbf{Weaknesses:} Constrained to a strictly linear hyper-plane; when multiple physical features exhibit high collinearity (e.g., cross-phase ratios and spectral spreads), Lasso arbitrarily retains one predictor and zeroes out the rest, discarding complementary sensor signals.
@@ -227,7 +230,7 @@ To overcome Lasso's collinearity bottleneck while retaining interpretability, El
     \min_{\mathbf{w} \in \mathbb{R}^p, \, b \in \mathbb{R}} \; \mathcal{L}_{\text{log}}(\mathbf{w}, b) + \lambda \left[ \alpha \|\mathbf{w}\|_1 + \frac{1 - \alpha}{2} \|\mathbf{w}\|_2^2 \right]
 \end{equation*}
 where $\mathcal{L}_{\text{log}}$ is the empirical cross-entropy loss, $\|\mathbf{w}\|_2^2 = \sum_{j=1}^p w_j^2$, and $\alpha \in [0, 1]$ represents the \texttt{l1\_ratio} controlling penalty composition. In our tuned pipeline, $\alpha = 0.80$ and $C = 2.0$.
-\begin{itemize}
+\begin{itemize}\setlength{\itemsep}{1.5pt}\setlength{\parskip}{0pt}
     \item \textbf{Characteristics \& Mechanism:} The strictly convex quadratic $\ell_2$ penalty induces a grouping effect, pulling correlated predictors toward each other with similar weights, while the $\ell_1$ component preserves overall sparsity.
     \item \textbf{Strengths:} Retains complementary multi-channel feature groups together (e.g., vertical spectral spread alongside horizontal spectral spread); stabilizes numerical optimization under collinear seismic ratios; achieved a $+1.95\%$ recall gain over Lasso ($94.53\%$ vs. $92.58\%$).
     \item \textbf{Weaknesses:} Still restricted to a linear separation boundary; requires simultaneous two-dimensional grid tuning over overall penalty scale ($\lambda$) and mixture ratio ($\alpha$).
@@ -242,7 +245,7 @@ The ensemble classification score averages the probabilistic predictions across 
 \begin{equation*}
     \hat{P}_{\text{RF}}(Y=1 \mid \mathbf{x}) = \frac{1}{B} \sum_{b=1}^B T_b(\mathbf{x}; \Theta_b)
 \end{equation*}
-\begin{itemize}
+\begin{itemize}\setlength{\itemsep}{1.5pt}\setlength{\parskip}{0pt}
     \item \textbf{Characteristics \& Mechanism:} Non-parametric bagging ensemble that leverages bootstrap aggregation and random subspace projection to decorrelate individual trees, driving ensemble variance down as $\text{Var}(\bar{T}) = \rho \sigma^2 + \frac{1-\rho}{B} \sigma^2$.
     \item \textbf{Strengths:} Naturally captures non-linear boundaries and high-order physical interactions (e.g., $P/S$ thresholds conditioned on coda decay rate); invariant to monotonic feature scaling; highly resilient to sensor dropouts and impulsive noise spikes.
     \item \textbf{Weaknesses:} Piecewise-constant step-function decision surface cannot extrapolate beyond the training bounding box; relatively larger memory footprint; lacks direct algebraic coefficient transparency.
@@ -258,7 +261,7 @@ where $y_i \in \{-1, +1\}$, $C = 20.0$ governs margin violation tolerance, and $
     f(\mathbf{x}) = \sum_{i \in \mathcal{S}} \alpha_i y_i K(\mathbf{x}_i, \mathbf{x}) + b
 \end{equation*}
 Calibrated posterior probabilities $P(Y=1 \mid \mathbf{x})$ are extracted via Platt scaling.
-\begin{itemize}
+\begin{itemize}\setlength{\itemsep}{1.5pt}\setlength{\parskip}{0pt}
     \item \textbf{Characteristics \& Mechanism:} Non-linear geometric maximum-margin classifier. Maximizing the geometric separation margin $2/\|\mathbf{w}\|$ provides rigorous structural risk minimization.
     \item \textbf{Strengths:} Top-performing tabular model ($97.13\%$ accuracy, $0.9973$ PR-AUC), rivaling deep learning performance; excellent out-of-event generalization; sparse representation depending solely on boundary samples.
     \item \textbf{Weaknesses:} Highly sensitive to feature scaling ($z$-score standardization is mandatory); quadratic-to-cubic training complexity $\mathcal{O}(N^2 - N^3)$; geometric kernel projection operates as a black box without direct physical attribution for individual features.
@@ -270,7 +273,7 @@ XGBoost constructs an additive ensemble of $M = 200$ shallow decision trees ($d 
     \mathcal{L}^{(t)} \approx \sum_{i=1}^N \left[ g_i f_t(\mathbf{x}_i) + \frac{1}{2} h_i f_t^2(\mathbf{x}_i) \right] + \gamma_{\text{leaf}} T + \frac{\lambda}{2}\sum_{j=1}^T w_j^2
 \end{equation*}
 where $g_i = \hat{p}_i - y_i$ and $h_i = \hat{p}_i(1 - \hat{p}_i)$ are the exact gradient and Hessian of the cross-entropy loss, $T$ denotes the number of leaves, $w_j$ represents leaf weight values, and $\gamma_{\text{leaf}}$ enforces split cost thresholds.
-\begin{itemize}
+\begin{itemize}\setlength{\itemsep}{1.5pt}\setlength{\parskip}{0pt}
     \item \textbf{Characteristics \& Mechanism:} Sequential gradient-guided optimization in functional space, combining shrinkage ($\eta = 0.05$) and column subsampling ($80\%$) to prevent individual tree dominance.
     \item \textbf{Strengths:} Outstanding predictive power ($96.55\%$ accuracy, $0.9954$ PR-AUC); built-in second-order optimization provides rapid, stable convergence; computes exact split gain per feature, confirming the primacy of horizontal spectral spread (\texttt{spec\_spread\_h}) with $48.06\%$ relative gain.
     \item \textbf{Weaknesses:} Demands careful tuning across multiple interrelated hyperparameters (depth, shrinkage $\eta$, subsample ratio, leaf regularization $\lambda$); sequential boosting construction cannot be parallelized across trees during training.
@@ -334,7 +337,7 @@ A vital distinction must be maintained between cross-validation precision in a c
     \label{fig:results_benchmark}
 \end{minipage}
 
-\vspace{1.0em}
+\vspace{0.6em}
 
 \begin{minipage}[c]{0.71\textwidth}
     \includegraphics[width=\textwidth]{feature_importance.png}
@@ -445,17 +448,18 @@ In this Advanced Statistical Methods II course project, we demonstrated that:
     \item Multi-station consensus achieved $100\%$ detection across all six historical North Korean nuclear tests held strictly out-of-sample.
 \end{enumerate}
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{9}\setlength{\itemsep}{0.25em}
 \bibitem{cooley1965}
 J.~W.~Cooley and J.~W.~Tukey.
 \newblock An algorithm for the machine calculation of complex Fourier series.
 \newblock \emph{Mathematics of Computation}, 19(90):297--301, 1965.
+\newblock DOI: \url{https://doi.org/10.1090/S0025-5718-1965-0178586-1}.
 
 \bibitem{barama2022}
 L.~Barama, Z.~Peng, A.~V.~Newman, and J.~Williams.
 \newblock GTUNE: An assembled global seismic dataset of underground nuclear test blasts.
 \newblock \emph{Seismological Research Letters}, 94(1):268--278, 2022.
-\newblock Repository: \url{https://github.com/lbarama/GTUNE/tree/main}.
+\newblock DOI: \url{https://doi.org/10.1785/0220220197}. Repository: \url{https://github.com/lbarama/GTUNE/tree/main}.
 
 \bibitem{iris21018}
 IRIS Data Management Center.
@@ -473,16 +477,31 @@ EarthScope Consortium.
 J.~N.~Brune.
 \newblock Tectonic stress and the spectra of seismic shear waves from earthquakes.
 \newblock \emph{Journal of Geophysical Research}, 75(26):4997--5009, 1970.
+\newblock DOI: \url{https://doi.org/10.1029/JB075i026p04997}.
 
 \bibitem{walter1995}
 W.~R.~Walter, K.~Mayeda, and H.~J.~Patton.
 \newblock Phase and spectral ratio discrimination of earthquakes and explosions in the western United States.
 \newblock \emph{Bulletin of the Seismological Society of America}, 85(4):1050--1067, 1995.
+\newblock DOI: \url{https://doi.org/10.1785/BSSA0850041050}.
+
+\bibitem{jurkevics1988}
+A.~Jurkevics.
+\newblock Polarization analysis of three-component array data.
+\newblock \emph{Bulletin of the Seismological Society of America}, 78(5):1725--1743, 1988.
+\newblock DOI: \url{https://doi.org/10.1785/BSSA0780051725}.
+
+\bibitem{aki1975}
+K.~Aki and B.~Chouet.
+\newblock Origin of coda waves: source, attenuation, and scattering effects.
+\newblock \emph{Journal of Geophysical Research}, 80(23):3322--3342, 1975.
+\newblock DOI: \url{https://doi.org/10.1029/JB080i023p03322}.
 
 \bibitem{hastie2009}
 T.~Hastie, R.~Tibshirani, and J.~Friedman.
 \newblock \emph{The Elements of Statistical Learning: Data Mining, Inference, and Prediction}.
 \newblock Springer, 2nd edition, 2009.
+\newblock DOI: \url{https://doi.org/10.1007/978-0-387-84858-7}.
 \end{thebibliography}
 
 \end{document}
